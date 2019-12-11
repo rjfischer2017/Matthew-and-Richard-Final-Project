@@ -1,0 +1,130 @@
+---
+title: "Richard and Matthew Final"
+author: "Richard Fischer"
+date: "December 10, 2019"
+output: html_document
+---
+
+```{r}
+library(ggplot2)
+library(tidyverse)
+library(dplyr)
+library(corrplot)
+library(readr)
+library(plotly)
+
+epa.cars <- read_csv("big_epa_cars.csv")
+
+epa.cars <- epa.cars%>%
+  mutate(
+    barrels = barrels08,
+    fuel_type = fuelType1,
+    mpg = comb08,
+    c02 = co2,
+    fuel_cost = fuelCost08
+  ) %>%
+  
+  select(
+    barrels,
+    fuel_type,
+    mpg,
+    c02,
+    fuel_cost,
+    drive,
+    make,
+    model,
+    year,
+    VClass
+  )
+
+corrplot(cor(select(epa.cars,
+                    year,
+                    barrels,
+                    mpg,
+                    c02,
+                    fuel_cost
+                    ), 
+             use="complete.obs"))
+```
+
+One thing that we notice in this correlation matrix is that cars tend to get better mpg and use less total gas as the year increases. However, cars made more recently tend to produce more c02 emissions.
+
+```{r}
+makefrequency <- aggregate(epa.cars$mpg, 
+                           by = list(epa.cars$make),
+                           length)
+colnames(makefrequency) <- c("Make", "Frequency")
+
+makefrequency <- makefrequency[order(makefrequency$Frequency, decreasing = TRUE),]
+makefrequency <- makefrequency[1:15,]
+
+pie(makefrequency$Frequency, labels = makefrequency$Make)
+```
+
+Here we can see the percentage of car makes and models of the top 15 makes. We see that Chevrolet, Ford, and Dodge are the 3 biggest car producers in this dataset.
+
+```{r}
+top5makes <- subset(epa.cars, 
+                    epa.cars$make %in%
+                      c(
+                        "Chevrolet",
+                        "Ford",
+                        "Dodge",
+                        "GMC",
+                        "Toyota"
+                      ))
+
+medianmpg <- aggregate(top5makes$mpg,
+                       by = list(top5makes$make, top5makes$year),
+                       median)
+colnames(medianmpg) <- c("make", "year", "median_mpg")
+
+line <- ggplot(medianmpg, aes(x = year, y = median_mpg, group = make, col = make)) + 
+  geom_line(stat = "identity") +
+  theme(axis.text.x = element_text(angle = 90))
+ggplotly(line)
+```
+
+With this line chart we see that for the top 5 car makes, the fuel economy tends to get better over time. Also, of these 5 makes, Toyota has by far the highest median mpg.
+
+```{r}
+ggplot(epa.cars, aes(x=fuel_type)) + 
+  geom_bar()
+```
+
+Here we see that most of the cars take either premium or regular gasoline, with regular being by far the most common. A small percentage of cars use diesel, and very few use electricity, midgrade gasoline, or natural gas.
+
+```{r}
+gasoline <- subset(epa.cars, 
+                    epa.cars$fuel_type %in%
+                      c(
+                        "Regular Gasoline",
+                        "Premium Gasoline"
+                      ))
+
+ggplot(gasoline, aes(x=fuel_type, y=mpg)) + 
+  geom_boxplot()
+```
+
+This shows us whether or not premium gasoline is better than regular. Regular gasoline appears to have a wider range for mpg and has a slightly higher median mpg.
+
+```{r}
+avgs <- aggregate(gasoline$mpg,
+          by = list(gasoline$fuel_type),
+          mean)
+colnames(avgs) <- c("Fuel_Type", "Mean MPG")
+avgs
+```
+
+This shows us that the mean mpg for regular gasoline is slightly higher than for premium gasoline.
+
+```{r}
+summary(aov(gasoline$mpg ~ gasoline$fuel_type))
+```
+
+Here we can confirm that the means for premium and regular are actually different. The null hypothesis is that both means are equal and the p-value is very low, so we can conlude that the mean mpg for regular is slightly higher than for premium.
+
+```{r}
+
+```
+
