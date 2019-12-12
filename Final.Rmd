@@ -36,7 +36,11 @@ epa.cars <- epa.cars%>%
     year,
     VClass
   )
+```
 
+#Variables
+The data set comprises 41,804 individual cars with the following categorical variables: The car's make, model and class, as well as its axle arrangement and fuel type. Another variable is the car's model year, which functions partly as a category and partly as a quantitative variable. The purely quantitative variables available are the car's annual fuel consumption, its fuel economy, tailpipe CO2 (grams/mile), and the annual cost of its fuel.
+```{r}
 corrplot(cor(select(epa.cars,
                     year,
                     barrels,
@@ -47,7 +51,7 @@ corrplot(cor(select(epa.cars,
              use="complete.obs"))
 ```
 
-One thing that we notice in this correlation matrix is that cars tend to get better mpg and use less total gas as the year increases. However, cars made more recently tend to produce more c02 emissions.
+One thing that we notice in this correlation matrix is that cars tend to get better mpg and use less total gas as the year increases. However, cars made more recently tend to produce more c02 emissions. The strong correlation between barrels and fuel cost is only natural, as the relationship should be approximately direct.
 
 ```{r}
 makefrequency <- aggregate(epa.cars$mpg, 
